@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logActivity } from '../../services/activity';
 
 const PermitModal = ({ supabase, profile, permisos, onClose, onRefresh }) => {
   const [isRequesting, setIsRequesting] = useState(false);
@@ -38,6 +39,17 @@ const PermitModal = ({ supabase, profile, permisos, onClose, onRefresh }) => {
       
       if (error) throw error;
       
+      // Registrar en log de auditoría
+      await logActivity(profile.id, 'solicitud_permiso', {
+        modulo: 'permisos',
+        accion_label: 'Solicitud de día administrativo',
+        docente: profile.nombre,
+        fecha_permiso: formData.fecha,
+        tipo_dia: formData.tipo_dia,
+        motivo: formData.motivo,
+        descripcion: `${profile.nombre} solicitó día administrativo (${formData.tipo_dia.toUpperCase()}) para el ${formData.fecha}. Motivo: ${formData.motivo}`
+      });
+
       alert("Solicitud enviada exitosamente.");
       setIsRequesting(false);
       setFormData({ fecha: '', tipo_dia: 'completo', motivo: '' });

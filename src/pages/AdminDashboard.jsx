@@ -14,6 +14,7 @@ import WeeklyHistory from '../components/admin/WeeklyHistory';
 import CoverageSummary from '../components/admin/CoverageSummary';
 import PermitManager from '../components/admin/PermitManager';
 import RecentCoveragesTable from '../components/admin/RecentCoveragesTable';
+import ActionLogManager from '../components/admin/ActionLogManager';
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('profesores');
@@ -211,6 +212,7 @@ function AdminDashboard() {
           <button className={`tab-button ${activeTab === 'reemplazos' ? 'active' : ''}`} onClick={() => setActiveTab('reemplazos')}>Reemplazos</button>
           <button className={`tab-button ${activeTab === 'horarios' ? 'active' : ''}`} onClick={() => setActiveTab('horarios')}>Horarios</button>
           <button className={`tab-button ${activeTab === 'permisos' ? 'active' : ''}`} onClick={() => setActiveTab('permisos')}>Días Administrativos</button>
+          <button className={`tab-button ${activeTab === 'registros' ? 'active' : ''}`} onClick={() => setActiveTab('registros')}>Registro de Acciones</button>
           <button className={`tab-button ${activeTab === 'monitoreo' ? 'active' : ''}`} onClick={() => setActiveTab('monitoreo')}>Monitoreo</button>
         </section>
 
@@ -253,6 +255,11 @@ function AdminDashboard() {
             <PermitManager 
               profesores={profesores}
               onRefresh={fetchCoverageData}
+            />
+          )}
+          {activeTab === 'registros' && (
+            <ActionLogManager 
+              profesores={profesores}
             />
           )}
           {activeTab === 'monitoreo' && (
