@@ -221,6 +221,60 @@ select:focus, input:focus, textarea:focus {
   border-color: #fecaca;
 }
 
+.headbar-icon-btn {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s ease-in-out;
+  padding: 0;
+  position: relative;
+}
+
+.headbar-icon-btn:hover {
+  background: #f1f5f9;
+  color: #6d28d9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.headbar-icon-btn:active {
+  transform: translateY(0);
+}
+
+.headbar-icon-btn .notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ffffff;
+}
+
+.notification-item {
+  transition: background 0.15s ease-in-out;
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
 main {
   padding: 2rem;
   max-width: 1200px;

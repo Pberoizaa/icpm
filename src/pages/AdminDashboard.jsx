@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Outlet } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import logo from '../assets/logo.png';
 import { formatLongDate, getWeekRange } from '../services/dateUtils';
@@ -54,6 +54,9 @@ function AdminDashboard() {
   const [processing, setProcessing] = useState(false);
   const [weeklyHistory, setWeeklyHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [pendingPermits, setPendingPermits] = useState([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationRef = useRef(null);
 
   // Password Change State
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -75,9 +78,20 @@ function AdminDashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'coberturas' }, () => fetchCoverageData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profesores' }, () => fetchProfesores())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reemplazos_periodos' }, () => fetchReemplazos())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'permisos_administrativos' }, () => fetchPendingPermits())
       .subscribe();
 
     return () => supabase.removeChannel(channel);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchAllData = async () => {
@@ -89,9 +103,23 @@ function AdminDashboard() {
       fetchCoverageData(),
       fetchActivityLogs(),
       fetchAllSchedules(),
-      fetchWeeklyHistory()
+      fetchWeeklyHistory(),
+      fetchPendingPermits()
     ]);
     setLoading(false);
+  };
+
+  const fetchPendingPermits = async () => {
+    try {
+      const { data } = await supabase
+        .from('permisos_administrativos')
+        .select('id, fecha, valor_dia, motivo, profesores(nombre)')
+        .eq('estado', 'pendiente')
+        .order('fecha', { ascending: true });
+      setPendingPermits(data || []);
+    } catch (err) {
+      console.error('Error fetching pending permits:', err);
+    }
   };
 
   const fetchProfesores = async () => {
@@ -223,7 +251,99 @@ function AdminDashboard() {
             <EfemerideWidget />
           </div>
         </div>
-        <div className="header-actions" style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="header-actions" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* Botón Inicio / Dashboard (Casita) */}
+          <button
+            type="button"
+            className="headbar-icon-btn"
+            onClick={() => navigate('/colaboradores')}
+            title="Inicio / Dashboard"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </button>
+
+          {/* Campana de Notificaciones con Dropdown */}
+          <div className="notification-bell-container" ref={notificationRef}>
+            <button
+              type="button"
+              className="headbar-icon-btn"
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              title="Notificaciones"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              {(pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length) > 0 && (
+                <span className="notification-badge">
+                  {pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length}
+                </span>
+              )}
+            </button>
+
+            {isNotificationsOpen && (
+              <div className="notifications-dropdown">
+                <div className="notifications-header">
+                  <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Notificaciones</h4>
+                  {(pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length) > 0 && (
+                    <span style={{ fontSize: '0.75rem', background: '#6d28d9', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '1rem', fontWeight: 700 }}>
+                      {pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length} pendientes
+                    </span>
+                  )}
+                </div>
+                <div className="notifications-list" style={{ maxHeight: '360px', overflowY: 'auto' }}>
+                  {pendingPermits.length === 0 && plannedCoverages.filter(c => c.estado === 'pendiente').length === 0 ? (
+                    <div className="empty-notifications" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
+                      No tienes notificaciones pendientes 🎉
+                    </div>
+                  ) : (
+                    <>
+                      {pendingPermits.map(p => (
+                        <div
+                          key={`permit-${p.id}`}
+                          className="notification-item"
+                          style={{ cursor: 'pointer', padding: '0.85rem 1rem', borderBottom: '1px solid var(--border)', textAlign: 'left' }}
+                          onClick={() => { setIsNotificationsOpen(false); navigate('/permisos'); }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#6d28d9', marginBottom: '0.2rem' }}>
+                            📝 Solicitud de Día Administrativo
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#334155' }}>
+                            {p.profesores?.nombre || 'Docente'} solicita {p.valor_dia} día para el {p.fecha}
+                          </div>
+                          {p.motivo && (
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem', fontStyle: 'italic' }}>
+                              "{p.motivo}"
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {plannedCoverages.filter(c => c.estado === 'pendiente').map(c => (
+                        <div
+                          key={`cov-${c.id}`}
+                          className="notification-item"
+                          style={{ cursor: 'pointer', padding: '0.85rem 1rem', borderBottom: '1px solid var(--border)', textAlign: 'left' }}
+                          onClick={() => { setIsNotificationsOpen(false); navigate('/coberturas'); }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--accent)', marginBottom: '0.2rem' }}>
+                            📋 Cobertura Pendiente
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#334155' }}>
+                            Reemplazo de {c.ausente?.nombre || 'Docente'} ({c.fecha})
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button className="logout-button" onClick={() => setIsPasswordModalOpen(true)}>Cambiar Contraseña</button>
           <button className="logout-button" onClick={() => supabase.auth.signOut()}>Cerrar Sesión</button>
         </div>
