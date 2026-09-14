@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
-import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.png'
 
 function Login() {
@@ -9,21 +7,37 @@ function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const navigate = useNavigate()
-  const { user, role, loading: authLoading, fetchRole } = useAuth()
 
-  // Si ya está autenticado, redirigir a su sección según rol
+  // Si ya tiene sesión activa previa, redirigir directo a su módulo
   useEffect(() => {
-    if (!authLoading && user) {
-      if (role === 'admin') {
-        navigate('/colaboradores', { replace: true })
-      } else if (role === 'asistente') {
-        navigate('/mi-panel', { replace: true })
-      } else {
-        navigate('/mi-horario', { replace: true })
+    let mounted = true
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user?.email && mounted) {
+          const { data: profile } = await supabase
+            .from('profesores')
+            .select('rol')
+            .ilike('email', session.user.email)
+            .maybeSingle()
+
+          if (!mounted) return
+          const rol = profile?.rol || 'profesor'
+          if (rol === 'admin') {
+            window.location.href = '/colaboradores'
+          } else if (rol === 'asistente') {
+            window.location.href = '/mi-panel'
+          } else {
+            window.location.href = '/mi-horario'
+          }
+        }
+      } catch (err) {
+        console.error('Session check error:', err)
       }
     }
-  }, [authLoading, user, role, navigate])
+    checkSession()
+    return () => { mounted = false }
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -42,18 +56,25 @@ function Login() {
       })
       if (authError) throw authError
 
-      const loggedRole = await fetchRole(data.user)
+      // Obtener rol del colaborador para dirigirlo a la URL correspondiente
+      const { data: profile } = await supabase
+        .from('profesores')
+        .select('rol')
+        .ilike('email', finalEmail)
+        .maybeSingle()
 
-      if (loggedRole === 'admin') {
-        navigate('/colaboradores')
-      } else if (loggedRole === 'asistente') {
-        navigate('/mi-panel')
+      const rol = profile?.rol || 'profesor'
+
+      if (rol === 'admin') {
+        window.location.href = '/colaboradores'
+      } else if (rol === 'asistente') {
+        window.location.href = '/mi-panel'
       } else {
-        navigate('/mi-horario')
+        window.location.href = '/mi-horario'
       }
     } catch (err) {
-      setError(err.message)
-    } finally {
+      console.error('Login error:', err)
+      setError(err.message || 'Credenciales inválidas')
       setLoading(false)
     }
   }

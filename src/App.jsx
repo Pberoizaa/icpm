@@ -1,50 +1,33 @@
 import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
 import Login from './pages/Login'
-import AdminDashboard from './pages/AdminDashboard'
-import TeacherDashboard from './pages/TeacherDashboard'
-import AssistantDashboard from './pages/AssistantDashboard'
+import Dashboard from './pages/Dashboard'
 import NotFound from './pages/NotFound'
-import ProtectedRoute from './components/ProtectedRoute'
-import DashboardRedirect from './components/DashboardRedirect'
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        {/* Acceso público */}
-        <Route path="/" element={<Login />} />
+    <Routes>
+      <Route path="/" element={<Login />} />
 
-        {/* Redirección inteligente de /dashboard al panel correspondiente al rol */}
-        <Route path="/dashboard" element={<DashboardRedirect />} />
+      {/* Layout persistente de Dashboard: maneja autenticación, roles y pestañas */}
+      <Route element={<Dashboard />}>
+        <Route path="/dashboard" element={null} />
 
-        {/* Pestañas exclusivas para Administrador */}
-        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route element={<AdminDashboard />}>
-            <Route path="/colaboradores" element={null} />
-            <Route path="/coberturas" element={null} />
-            <Route path="/reemplazos" element={null} />
-            <Route path="/horarios" element={null} />
-            <Route path="/permisos" element={null} />
-            <Route path="/registros" element={null} />
-            <Route path="/monitoreo" element={null} />
-          </Route>
-        </Route>
+        {/* Pestañas exclusivas para Administradores */}
+        <Route path="/colaboradores" element={null} />
+        <Route path="/coberturas" element={null} />
+        <Route path="/reemplazos" element={null} />
+        <Route path="/horarios" element={null} />
+        <Route path="/permisos" element={null} />
+        <Route path="/registros" element={null} />
+        <Route path="/monitoreo" element={null} />
 
-        {/* Vista para Profesores */}
-        <Route element={<ProtectedRoute allowedRoles={['profesor']} />}>
-          <Route path="/mi-horario" element={<TeacherDashboard />} />
-        </Route>
+        {/* Vistas de otros cargos */}
+        <Route path="/mi-horario" element={null} />
+        <Route path="/mi-panel" element={null} />
+      </Route>
 
-        {/* Vista para Asistentes */}
-        <Route element={<ProtectedRoute allowedRoles={['asistente']} />}>
-          <Route path="/mi-panel" element={<AssistantDashboard />} />
-        </Route>
-
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AuthProvider>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   )
 }
 

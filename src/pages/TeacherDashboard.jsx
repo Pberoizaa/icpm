@@ -7,13 +7,9 @@ import { BLOQUES, DIAS, DURACION_BLOQUE_H } from '../services/constants'
 import { getDetailedBudget, formatUsage } from '../services/budgetUtils'
 import PermitModal from '../components/shared/PermitModal'
 import { EfemerideWidget } from '../components/shared/EfemerideWidget'
-import { useAuth } from '../contexts/AuthContext'
-
 function TeacherDashboard({ user: initialUser }) {
   const navigate = useNavigate()
-  const { user: authUser } = useAuth()
-  const effectiveUser = initialUser || authUser
-  const [user, setUser] = useState(effectiveUser)
+  const [user, setUser] = useState(initialUser)
   const [profile, setProfile] = useState(null)
   const [horarios, setHorarios] = useState([])
   const [inheritedHorarios, setInheritedHorarios] = useState([])
@@ -29,11 +25,11 @@ function TeacherDashboard({ user: initialUser }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
 
   useEffect(() => {
-    if (effectiveUser) {
-      setUser(effectiveUser)
-      fetchUserData(effectiveUser)
+    if (initialUser) {
+      setUser(initialUser)
+      fetchUserData(initialUser)
     }
-  }, [effectiveUser])
+  }, [initialUser])
 
   async function fetchUserData(currentUser) {
     const targetUser = currentUser || user
