@@ -7,9 +7,12 @@ import { BLOQUES, DIAS } from '../services/constants';
 import ScheduleViewer from './AssistantScheduleViewer';
 import PermitModal from '../components/shared/PermitModal';
 import { EfemerideWidget } from '../components/shared/EfemerideWidget';
+import { useAuth } from '../contexts/AuthContext';
 
 function AssistantDashboard({ user: initialUser }) {
-  const [user, setUser] = useState(initialUser);
+  const { user: authUser } = useAuth();
+  const effectiveUser = initialUser || authUser;
+  const [user, setUser] = useState(effectiveUser);
   const [profile, setProfile] = useState(null);
   const [coberturas, setCoberturas] = useState([]);
   const [permisos, setPermisos] = useState([]);
@@ -22,9 +25,11 @@ function AssistantDashboard({ user: initialUser }) {
   const [passwordProcessing, setPasswordProcessing] = useState(false);
 
   useEffect(() => {
-    if (initialUser) setUser(initialUser);
-    fetchUserData(initialUser);
-  }, [initialUser]);
+    if (effectiveUser) {
+      setUser(effectiveUser);
+      fetchUserData(effectiveUser);
+    }
+  }, [effectiveUser]);
 
   async function fetchUserData(currentUser) {
     const targetUser = currentUser || user;

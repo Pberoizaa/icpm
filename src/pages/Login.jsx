@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
+import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.png'
 
 function Login() {
@@ -7,29 +9,50 @@ function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const navigate = useNavigate()
+  const { user, role, loading: authLoading, fetchRole } = useAuth()
+
+  // Si ya está autenticado, redirigir a su sección según rol
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (role === 'admin') {
+        navigate('/colaboradores', { replace: true })
+      } else if (role === 'asistente') {
+        navigate('/mi-panel', { replace: true })
+      } else {
+        navigate('/mi-horario', { replace: true })
+      }
+    }
+  }, [authLoading, user, role, navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    let finalEmail = email
-    if (email && !email.includes('@')) {
-      finalEmail = `${email}@icomercialpmt.cl`
+    let finalEmail = email.trim()
+    if (finalEmail && !finalEmail.includes('@')) {
+      finalEmail = `${finalEmail}@icomercialpmt.cl`
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: finalEmail,
         password,
       })
-      if (error) {
-        throw error
+      if (authError) throw authError
+
+      const loggedRole = await fetchRole(data.user)
+
+      if (loggedRole === 'admin') {
+        navigate('/colaboradores')
+      } else if (loggedRole === 'asistente') {
+        navigate('/mi-panel')
+      } else {
+        navigate('/mi-horario')
       }
-      // Redirect to dashboard on successful login
-      window.location.href = '/dashboard'
-    } catch (error) {
-      setError(error.message)
+    } catch (err) {
+      setError(err.message)
     } finally {
       setLoading(false)
     }

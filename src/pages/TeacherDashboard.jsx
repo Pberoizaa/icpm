@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import logo from '../assets/logo.png'
 import { formatLongDate, getWeekRange } from '../services/dateUtils'
@@ -6,9 +7,13 @@ import { BLOQUES, DIAS, DURACION_BLOQUE_H } from '../services/constants'
 import { getDetailedBudget, formatUsage } from '../services/budgetUtils'
 import PermitModal from '../components/shared/PermitModal'
 import { EfemerideWidget } from '../components/shared/EfemerideWidget'
+import { useAuth } from '../contexts/AuthContext'
 
 function TeacherDashboard({ user: initialUser }) {
-  const [user, setUser] = useState(initialUser)
+  const navigate = useNavigate()
+  const { user: authUser } = useAuth()
+  const effectiveUser = initialUser || authUser
+  const [user, setUser] = useState(effectiveUser)
   const [profile, setProfile] = useState(null)
   const [horarios, setHorarios] = useState([])
   const [inheritedHorarios, setInheritedHorarios] = useState([])
@@ -24,9 +29,11 @@ function TeacherDashboard({ user: initialUser }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
 
   useEffect(() => {
-    if (initialUser) setUser(initialUser)
-    fetchUserData(initialUser)
-  }, [initialUser])
+    if (effectiveUser) {
+      setUser(effectiveUser)
+      fetchUserData(effectiveUser)
+    }
+  }, [effectiveUser])
 
   async function fetchUserData(currentUser) {
     const targetUser = currentUser || user
@@ -324,7 +331,7 @@ function TeacherDashboard({ user: initialUser }) {
             src={logo} 
             alt="IC Logo" 
             className="logo-header" 
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => navigate('/mi-horario')}
             style={{ cursor: 'pointer' }}
           />
           <div className="header-text">

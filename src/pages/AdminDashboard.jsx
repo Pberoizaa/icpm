@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import logo from '../assets/logo.png';
 import { formatLongDate, getWeekRange } from '../services/dateUtils';
@@ -16,8 +17,31 @@ import PermitManager from '../components/admin/PermitManager';
 import RecentCoveragesTable from '../components/admin/RecentCoveragesTable';
 import ActionLogManager from '../components/admin/ActionLogManager';
 
+// Map URL pathnames to internal tab keys
+const ROUTE_TO_TAB = {
+  '/colaboradores': 'profesores',
+  '/coberturas': 'coberturas',
+  '/reemplazos': 'reemplazos',
+  '/horarios': 'horarios',
+  '/permisos': 'permisos',
+  '/registros': 'registros',
+  '/monitoreo': 'monitoreo',
+};
+
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('profesores');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Derive active tab from current URL, fallback to 'profesores'
+  const activeTab = ROUTE_TO_TAB[location.pathname] ?? 'profesores';
+
+  // Redirect /dashboard to /colaboradores
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      navigate('/colaboradores', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
   const [profesores, setProfesores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [asignaturas, setAsignaturas] = useState([]);
@@ -189,7 +213,7 @@ function AdminDashboard() {
             src={logo} 
             alt="IC Logo" 
             className="logo-header" 
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => navigate('/colaboradores')}
             style={{ cursor: 'pointer' }}
           />
           <div className="header-text">
@@ -207,13 +231,13 @@ function AdminDashboard() {
 
       <main>
         <section className="admin-tabs">
-          <button className={`tab-button ${activeTab === 'profesores' ? 'active' : ''}`} onClick={() => setActiveTab('profesores')}>Colaboradores</button>
-          <button className={`tab-button ${activeTab === 'coberturas' ? 'active' : ''}`} onClick={() => setActiveTab('coberturas')}>Coberturas</button>
-          <button className={`tab-button ${activeTab === 'reemplazos' ? 'active' : ''}`} onClick={() => setActiveTab('reemplazos')}>Reemplazos</button>
-          <button className={`tab-button ${activeTab === 'horarios' ? 'active' : ''}`} onClick={() => setActiveTab('horarios')}>Horarios</button>
-          <button className={`tab-button ${activeTab === 'permisos' ? 'active' : ''}`} onClick={() => setActiveTab('permisos')}>Días Administrativos</button>
-          <button className={`tab-button ${activeTab === 'registros' ? 'active' : ''}`} onClick={() => setActiveTab('registros')}>Registro de Acciones</button>
-          <button className={`tab-button ${activeTab === 'monitoreo' ? 'active' : ''}`} onClick={() => setActiveTab('monitoreo')}>Monitoreo</button>
+          <button className={`tab-button ${activeTab === 'profesores' ? 'active' : ''}`} onClick={() => navigate('/colaboradores')}>Colaboradores</button>
+          <button className={`tab-button ${activeTab === 'coberturas' ? 'active' : ''}`} onClick={() => navigate('/coberturas')}>Coberturas</button>
+          <button className={`tab-button ${activeTab === 'reemplazos' ? 'active' : ''}`} onClick={() => navigate('/reemplazos')}>Reemplazos</button>
+          <button className={`tab-button ${activeTab === 'horarios' ? 'active' : ''}`} onClick={() => navigate('/horarios')}>Horarios</button>
+          <button className={`tab-button ${activeTab === 'permisos' ? 'active' : ''}`} onClick={() => navigate('/permisos')}>Días Administrativos</button>
+          <button className={`tab-button ${activeTab === 'registros' ? 'active' : ''}`} onClick={() => navigate('/registros')}>Registro de Acciones</button>
+          <button className={`tab-button ${activeTab === 'monitoreo' ? 'active' : ''}`} onClick={() => navigate('/monitoreo')}>Monitoreo</button>
         </section>
 
         <div className="tab-content">
@@ -299,6 +323,7 @@ function AdminDashboard() {
               />
             </>
           )}
+          <Outlet />
         </div>
       </main>
 
