@@ -4,6 +4,7 @@ import { supabase } from '../services/supabase';
 import logo from '../assets/logo.png';
 import { formatLongDate, getWeekRange } from '../services/dateUtils';
 import { EfemerideWidget } from '../components/shared/EfemerideWidget';
+import UiScaleWidget from '../components/shared/UiScaleWidget';
 
 // Modular Components
 import ProfessorManager from '../components/admin/ProfessorManager';
@@ -252,6 +253,7 @@ function AdminDashboard() {
           </div>
         </div>
         <div className="header-actions" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <UiScaleWidget />
           {/* Botón Inicio / Dashboard (Casita) */}
           <button
             type="button"

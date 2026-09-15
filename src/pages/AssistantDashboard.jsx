@@ -7,6 +7,7 @@ import { BLOQUES, DIAS } from '../services/constants';
 import ScheduleViewer from './AssistantScheduleViewer';
 import PermitModal from '../components/shared/PermitModal';
 import { EfemerideWidget } from '../components/shared/EfemerideWidget';
+import UiScaleWidget from '../components/shared/UiScaleWidget';
 function AssistantDashboard({ user: initialUser }) {
   const [user, setUser] = useState(initialUser);
   const [profile, setProfile] = useState(null);
@@ -111,6 +112,7 @@ function AssistantDashboard({ user: initialUser }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <UiScaleWidget />
           {profile?.cambio_clave_pendiente && (
             <button className="btn-edit" onClick={() => setIsPasswordModalOpen(true)}>Cambiar Clave</button>
           )}

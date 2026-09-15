@@ -7,6 +7,7 @@ import { BLOQUES, DIAS, DURACION_BLOQUE_H } from '../services/constants'
 import { getDetailedBudget, formatUsage } from '../services/budgetUtils'
 import PermitModal from '../components/shared/PermitModal'
 import { EfemerideWidget } from '../components/shared/EfemerideWidget'
+import UiScaleWidget from '../components/shared/UiScaleWidget'
 function TeacherDashboard({ user: initialUser }) {
   const navigate = useNavigate()
   const [user, setUser] = useState(initialUser)
@@ -340,6 +341,7 @@ function TeacherDashboard({ user: initialUser }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <UiScaleWidget />
           <div className="notification-bell-container">
             <button
               className="notification-bell"

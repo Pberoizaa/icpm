@@ -11,7 +11,9 @@
   --bg-soft: #f9fafb;
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
 
-  font: 18px/145% var(--sans);
+  --root-font-size: 18px;
+  font: var(--root-font-size, 18px)/145% var(--sans);
+  font-size: var(--root-font-size, 18px);
   color-scheme: light;
   color: var(--text);
   background: var(--bg);
@@ -20,6 +22,7 @@
 }
 
 html {
+  font-size: var(--root-font-size, 18px);
   color-scheme: light !important;
   background-color: var(--bg) !important;
 }
@@ -273,6 +276,74 @@ select:focus, input:focus, textarea:focus {
 
 .notification-item:hover {
   background: #f8fafc;
+}
+
+/* --- UI Scale Widget (Accessibility / Responsive Sizing) --- */
+.ui-scale-widget {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  padding: 0.15rem 0.35rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.ui-scale-btn {
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.ui-scale-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #6d28d9;
+}
+
+.ui-scale-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.ui-scale-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ui-scale-indicator {
+  background: transparent;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  padding: 0 0.4rem;
+  min-width: 44px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 0.4rem;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+}
+
+.ui-scale-indicator:hover {
+  background: #f3e8ff;
+  color: #6d28d9;
 }
 
 main {
