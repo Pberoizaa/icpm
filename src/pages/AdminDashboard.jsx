@@ -234,6 +234,26 @@ function AdminDashboard() {
     }
   };
 
+  const handleDismissPendingCoverages = async () => {
+    const pendingCovIds = plannedCoverages.filter(c => c.estado === 'pendiente').map(c => c.id);
+    if (pendingCovIds.length === 0) return;
+    
+    if (!window.confirm('¿Estás seguro de descartar/cancelar todas las coberturas diarias pendientes?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('coberturas')
+        .update({ estado: 'cancelada' })
+        .in('id', pendingCovIds);
+        
+      if (error) throw error;
+      await fetchCoverageData();
+      setIsNotificationsOpen(false);
+    } catch (err) {
+      alert('Error al descartar coberturas: ' + err.message);
+    }
+  };
+
   return (
     <div className="admin-dashboard">
       <header className="dashboard-header">
@@ -290,11 +310,22 @@ function AdminDashboard() {
               <div className="notifications-dropdown">
                 <div className="notifications-header">
                   <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Notificaciones</h4>
-                  {(pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length) > 0 && (
-                    <span style={{ fontSize: '0.75rem', background: '#6d28d9', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '1rem', fontWeight: 700 }}>
-                      {pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length} pendientes
-                    </span>
-                  )}
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {(pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length) > 0 && (
+                      <span style={{ fontSize: '0.75rem', background: '#6d28d9', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '1rem', fontWeight: 700 }}>
+                        {pendingPermits.length + plannedCoverages.filter(c => c.estado === 'pendiente').length} pendientes
+                      </span>
+                    )}
+                    {plannedCoverages.filter(c => c.estado === 'pendiente').length > 0 && (
+                      <button 
+                        onClick={handleDismissPendingCoverages}
+                        style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '0.3rem', border: '1px solid var(--border)', background: '#f8fafc', cursor: 'pointer' }}
+                        title="Descartar todas las coberturas pendientes"
+                      >
+                        Limpiar Coberturas
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="notifications-list" style={{ maxHeight: '360px', overflowY: 'auto' }}>
                   {pendingPermits.length === 0 && plannedCoverages.filter(c => c.estado === 'pendiente').length === 0 ? (

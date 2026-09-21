@@ -211,7 +211,11 @@ function TeacherDashboard({ user: initialUser }) {
         .update({ vista_por_profesor: true })
         .in('id', unreadIds)
 
-      if (error) throw error
+      if (error) console.error('Supabase update error (RLS):', error) // We don't throw because we want localStorage to save it anyway
+
+      // Fallback local en caso de que RLS impida al profe actualizar la tabla coberturas
+      const localRead = JSON.parse(localStorage.getItem('read_coverages') || '[]');
+      localStorage.setItem('read_coverages', JSON.stringify([...new Set([...localRead, ...unreadIds])]));
 
       setCoberturas(prev => prev.map(c => unreadIds.includes(c.id) ? { ...c, vista_por_profesor: true } : c))
       setIsNotificationsOpen(false)
@@ -238,10 +242,13 @@ function TeacherDashboard({ user: initialUser }) {
   )
   const horasCubiertas = currentWeekAssignments.length
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const localRead = JSON.parse(localStorage.getItem('read_coverages') || '[]');
   const unreadCoverages = coberturas.filter(c =>
     !c.vista_por_profesor &&
-    c.tipo === 'cobertura' &&
-    c.estado !== 'cancelada'
+    !localRead.includes(c.id) &&
+    c.estado !== 'cancelada' &&
+    (c.tipo === 'reemplazo' || (c.tipo === 'cobertura' && c.fecha >= todayStr))
   )
 
   const uniqueSubjects = Array.from(new Set(horarios.filter(h => h.asignaturas?.nombre).map(h => h.asignaturas.nombre)))
@@ -359,7 +366,7 @@ function TeacherDashboard({ user: initialUser }) {
                   <h4>Notificaciones</h4>
                   {unreadCoverages.length > 0 && (
                     <button className="mark-read-btn" onClick={handleMarkNotificationsAsRead}>
-                      Marcar todo como leído
+                      Marcar como leído
                     </button>
                   )}
                 </div>
